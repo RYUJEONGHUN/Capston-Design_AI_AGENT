@@ -1,0 +1,4 @@
+.env
+app/data/관광지.csv
+app/data/식당.csv
+app/data/카페.csv
