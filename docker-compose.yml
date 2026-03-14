@@ -1,0 +1,17 @@
+services:
+  ai:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/code/app  # 로컬의 app 폴더를 컨테이너 안으로 실시간 연결
+      - .:/code
+    container_name: incheon_mate_fastapi
+    networks:
+      - incheon_mate_network
+
+networks:
+  incheon_mate_network:
+    external: true
