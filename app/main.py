@@ -10,3 +10,5 @@ app.include_router(chat.router, prefix="/api/v1/ai")
 @app.get("/")
 async def root():
     return {"message": "IncheonMate FastAPI Server is running"}
+
+
