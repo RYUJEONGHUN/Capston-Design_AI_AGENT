@@ -1,34 +1,35 @@
-from langchain_aws import ChatBedrock
 from langchain_classic.agents import initialize_agent, AgentType
-from langchain_classic.memory import ConversationBufferMemory
-from app.core.config import settings
+from langchain_community.chat_message_histories import RedisChatMessageHistory
+from langchain_classic.memory import ConversationBufferWindowMemory
 from app.tools.incheon_tool import incheon_tool
-from langchain_aws import BedrockEmbeddings
+from app.core.factory import llm
 
-# LLM 초기화
-llm = ChatBedrock(
-    model_id=settings.MODEL_ID,
-    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    region_name=settings.AWS_REGION_NAME,
-    model_kwargs={"temperature": 0.7}
-)
+# Redis 주소 설정 (컨테이너 이름을 사용하세요)
+REDIS_URL = "redis://incheon_mate-redis:6379/0"
 
-# 메모리 및 에이전트 설정
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-agent_executor = initialize_agent(
-    tools=[incheon_tool],
-    llm=llm,
-    agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-    verbose=True,
-    memory=memory,
-    handle_parsing_errors=True
-)
+def get_memory(session_id: str):
+    """세션 ID별로 Redis 대화 기록을 관리하는 메모리 객체 생성"""
+    chat_history = RedisChatMessageHistory(
+        url=REDIS_URL,
+        session_id=session_id,
+        ttl=3600  # 1시간 동안 대화 보관
+    )
+    return ConversationBufferWindowMemory(
+        memory_key="chat_history",
+        chat_memory=chat_history,
+        return_messages=True,
+        k=5 # 최근 5개의 대화 묶음을 기억합니다. (충분히 똑똑하게 작동해요!)
+    )
 
-
-# 임베딩 모델 초기화
-embeddings = BedrockEmbeddings(
-    model_id=settings.EMBEDDING_ID, 
-    region_name=settings.AWS_REGION_NAME,
-    credentials_profile_name=None # 세팅에 맞게 조절
-)
+def get_agent_executor(session_id: str):
+    """요청마다 개별 메모리를 가진 에이전트를 반환"""
+    memory = get_memory(session_id)
+    
+    return initialize_agent(
+        tools=[incheon_tool],
+        llm=llm,
+        agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+        verbose=True,
+        memory=memory,
+        handle_parsing_errors=True
+    )
