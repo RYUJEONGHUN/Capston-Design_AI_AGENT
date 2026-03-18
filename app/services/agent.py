@@ -12,13 +12,13 @@ def get_memory(session_id: str):
     chat_history = RedisChatMessageHistory(
         url=REDIS_URL,
         session_id=session_id,
-        ttl=3600  # 1시간 동안 대화 보관
+        ttl=86400  # 24시간 동안 대화 보관
     )
     return ConversationBufferWindowMemory(
         memory_key="chat_history",
         chat_memory=chat_history,
         return_messages=True,
-        k=5 # 최근 5개의 대화 묶음을 기억합니다. (충분히 똑똑하게 작동해요!)
+        k=5 # 최근 5개의 대화 묶음을 기억합니다. 
     )
 
 def get_agent_executor(session_id: str):
