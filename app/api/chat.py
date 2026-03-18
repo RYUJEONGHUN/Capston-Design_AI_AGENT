@@ -1,16 +1,27 @@
 from fastapi import APIRouter, Body
 from app.services.agent import get_agent_executor
 from app.core.database import db
+from app.core.personas import PERSONA_PROMPTS
 
 router = APIRouter(tags=["AI Chat"])
 
 @router.post("/chat")
-async def chat(user_input: str = Body(..., embed=True), session_id: str = Body("guest_user", embed=True)):
+async def chat(user_input: str = Body(..., embed=True), 
+               session_id: str = Body("guest_user", embed=True),
+               persona_type: str = Body("BEAR", embed=True) # Spring Boot에서 Enum의 name("BEAR")을 보내준다.
+               ):
     try:
+        # 1. Redis 기반 에이전트 가져오기    
         agent_executor = get_agent_executor(session_id)
+
+        # 2. 페르소나 지침 가져오기    
+        persona_info = PERSONA_PROMPTS.get(persona_type, PERSONA_PROMPTS["BEAR"])
+
+        # 3. 통합 지침(Instruction) 구성
         instruction = (
-        f"사용자 질문: {user_input}\n\n"
-        "지침:\n"
+        f"### [나의 페르소나]\n{persona_info}\n\n"
+        f"### [사용자 질문]\n{user_input}\n\n"
+        "### [답변 지침]\n"
         "1. [공감] 모든 답변의 시작은 사용자의 상태에 대한 따뜻한 공감으로 시작해."
         "2. [의도 파악] 사용자의 질문이 '정보 검색'인지 '단순 대화'인지 먼저 판단해.\n"
         "3. [대화 모드] 인사를 하거나 사소한 이야기를 할 때는 도구를 쓰지 말고 친절하게 대답만 해줘.\n"
