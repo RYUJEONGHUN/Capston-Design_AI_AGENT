@@ -26,3 +26,5 @@ EXPOSE 8000
 
 # uvicorn 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+#CICD 테스트 진행
