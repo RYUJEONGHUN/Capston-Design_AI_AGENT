@@ -23,23 +23,36 @@ jobs:
           username: ${{ secrets.AI_EC2_USER }}
           key: ${{ secrets.AI_EC2_SSH_KEY }}
           script: |
-            set -e
-
-            cd ${{ secrets.AI_SERVER_PATH }}
-
-            echo "=== Git pull ==="
-            git fetch origin
-            git checkout main
-            git pull origin main
-
-            echo "=== Docker compose deploy ==="
-            docker compose -f docker-compose-prod.yml down
-            docker compose -f docker-compose-prod.yml up -d --build
-
-            echo "=== Container status ==="
-            docker ps
-
-            echo "=== Health-ish check ==="
-            curl -f http://localhost:8000/openapi.json > /dev/null
-
-            echo "=== Deploy done ==="
+              set -e
+            
+              cd ${{ secrets.AI_SERVER_PATH }}
+            
+              echo "=== Git pull ==="
+              git fetch origin
+              git checkout main
+              git pull origin main
+            
+              echo "=== Docker compose deploy ==="
+              docker compose -f docker-compose-prod.yml down
+              docker compose -f docker-compose-prod.yml up -d --build
+            
+              echo "=== Container status ==="
+              docker ps
+            
+              echo "=== Health-ish check ==="
+              for i in 1 2 3 4 5 6 7 8 9 10; do
+                if curl -f http://localhost:8000/openapi.json > /dev/null; then
+                  echo "Health check passed"
+                  break
+                fi
+                echo "Waiting for FastAPI... ($i)"
+                sleep 3
+              done
+            
+              if ! curl -f http://localhost:8000/openapi.json > /dev/null; then
+                echo "Health check failed, showing logs"
+                docker logs --tail 100 incheon_mate_fastapi
+                exit 1
+              fi
+            
+              echo "=== Deploy done ==="
