@@ -14,7 +14,6 @@ class Settings:
     EMBEDDING_ID = "amazon.titan-embed-text-v2:0"
 
     # Redis
-    REDIS_URL = os.getenv("REDIS_URL", "redis://incheon_mate-redis:6379/0")
-
+    REDIS_URL = os.getenv("REDIS_URL")
 
 settings = Settings()
