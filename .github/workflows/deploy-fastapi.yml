@@ -1,0 +1,45 @@
+name: Deploy FastAPI AI Server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - 'docker-compose-prod.yml'
+      - '.github/workflows/deploy-fastapi.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AI EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AI_EC2_HOST }}
+          username: ${{ secrets.AI_EC2_USER }}
+          key: ${{ secrets.AI_EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            cd ${{ secrets.AI_SERVER_PATH }}
+
+            echo "=== Git pull ==="
+            git fetch origin
+            git checkout main
+            git pull origin main
+
+            echo "=== Docker compose deploy ==="
+            docker compose -f docker-compose-prod.yml down
+            docker compose -f docker-compose-prod.yml up -d --build
+
+            echo "=== Container status ==="
+            docker ps
+
+            echo "=== Health-ish check ==="
+            curl -f http://localhost:8000/openapi.json > /dev/null
+
+            echo "=== Deploy done ==="
