@@ -10,8 +10,9 @@ app.include_router(chat.router, prefix="/api/v1/ai")
 app.include_router(chat_qwen_router, prefix="/api/v1/ai")
 app.include_router(chat_qwen_agent_router, prefix="/api/v1/ai")
 
+# 테스트
 @app.get("/")
 async def root():
-    return {"message": "IncheonMate FastAPI Server is running"}
+    return {"message": "IncheonMate FastAPI Server is running, test plz"}
 
 
