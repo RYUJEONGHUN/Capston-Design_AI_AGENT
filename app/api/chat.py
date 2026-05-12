@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Body
 
 from app.agents.executor import get_agent_executor
-from app.agents.prompts import build_chat_instruction
-
+from app.agents.request_store import (
+    clear_search_places,
+    get_search_places,
+    clear_course_route,
+    get_course_route,
+)
+from app.services.search.search_formatter import build_places_metadata
+from app.services.course.route_formatter import build_route_metadata
 
 router = APIRouter()
 
@@ -32,17 +38,19 @@ async def chat(
     sasang_type: str = Body(None, embed=True),
 ):
     try:
-        
-        agent_executor = get_agent_executor(session_id)
+        clear_search_places(session_id)
+        clear_course_route(session_id)
 
-        instruction = build_chat_instruction(
-            user_input=user_input,
+        print("[DEBUG] incoming session_id =", session_id)
+
+        agent_executor = get_agent_executor(
+            session_id=session_id,
             persona_type=persona_type,
             mbti_type=mbti_type,
             sasang_type=sasang_type,
         )
 
-        agent_result = await agent_executor.ainvoke({"input": instruction})
+        agent_result = await agent_executor.ainvoke({"input": user_input})
 
         answer = agent_result.get("output", "")
         intermediate_steps = agent_result.get("intermediate_steps", [])
@@ -50,17 +58,32 @@ async def chat(
         response_type = parse_response_type(intermediate_steps)
         is_course = response_type == "course"
 
+        raw_places = get_search_places(session_id)
+        places = build_places_metadata(raw_places) if response_type == "search" else []
+
+        raw_route = get_course_route(session_id)
+        route = build_route_metadata(raw_route) if response_type == "course" else []
+
+        clear_search_places(session_id)
+        clear_course_route(session_id)
+
         return {
             "answer": answer,
             "isCourse": is_course,
             "responseType": response_type,
             "provider": "claude",
+            "places": places,
+            "route": route,
         }
 
     except Exception as e:
+        clear_search_places(session_id)
+        clear_course_route(session_id)
         return {
             "error": str(e),
             "isCourse": False,
             "responseType": "error",
             "provider": "claude",
+            "places": [],
+            "route": [],
         }
