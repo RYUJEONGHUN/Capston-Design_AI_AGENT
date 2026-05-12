@@ -2,28 +2,43 @@ from langchain_classic.agents import AgentType, initialize_agent
 
 from app.agents.memory import get_memory
 from app.core.factory import llm
-from app.tools.course_tool import incheon_course_tool
-from app.tools.incheon_tool import incheon_tool
+from app.tools.tool_factory import build_session_tools
+from app.core.persona import PERSONA_CONFIG
+from app.agents.prompts import build_system_prompt
 
 
-def get_agent_executor(session_id: str):
-    memory = get_memory(session_id)
+def get_agent_executor(
+    session_id: str,
+    persona_type: str,
+    mbti_type: str | None = None,
+    sasang_type: str | None = None,
+):
+    tools = build_session_tools(session_id)
 
-    tools = [
-        incheon_tool,
-        incheon_course_tool,
-    ]
+    persona = PERSONA_CONFIG.get(persona_type, PERSONA_CONFIG["BEAR"])
+    persona_info = persona["prompt"]
+
+    system_prompt = build_system_prompt(
+        persona_info=persona_info,
+        mbti_type=mbti_type,
+        sasang_type=sasang_type,
+    )
 
     return initialize_agent(
         tools=tools,
         llm=llm,
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-        verbose=True,
-        memory=memory,
-        handle_parsing_errors=True,
+        memory=get_memory(session_id),
         return_intermediate_steps=True,
+        verbose=True,
+        handle_parsing_errors=True,
         agent_kwargs={
-            "memory_key": "chat_history",
-            "input_variables": ["input", "agent_scratchpad", "chat_history"],
+            "prefix": system_prompt,
+            "suffix": (
+                "이전 대화 기록:\n{chat_history}\n\n"
+                "사용자 입력:\n{input}\n\n"
+                "{agent_scratchpad}"
+            ),
+            "input_variables": ["input", "chat_history", "agent_scratchpad"],
         },
     )

@@ -11,9 +11,16 @@ def get_memory(session_id: str) -> ConversationBufferWindowMemory:
         ttl=86400,
     )
 
-    return ConversationBufferWindowMemory(
+    memory = ConversationBufferWindowMemory(
         memory_key="chat_history",
         chat_memory=chat_history,
-        return_messages=True,
-        k=5,
+        return_messages=False,
+        input_key="input",
+        output_key="output",
+        k=10,
     )
+
+    print("[DEBUG] memory session_id =", session_id)
+    print("[DEBUG] loaded memory vars =", memory.load_memory_variables({}))
+
+    return memory
