@@ -9,6 +9,8 @@ class IncheonSearchInput(BaseModel):
     query: str = Field(..., description="사용자 검색 질의")
 
 
+
+
 def build_incheon_tool(session_id: str):
     async def run_incheon_search(query: str) -> str:
         result = await search_my_incheon_data(
