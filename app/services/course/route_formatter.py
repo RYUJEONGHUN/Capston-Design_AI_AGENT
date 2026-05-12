@@ -36,3 +36,26 @@ def format_route_data(route: list[dict], total_distance: float) -> str:
         lines.append("")
 
     return "\n".join(lines).strip()
+
+
+def build_route_metadata(route: list[dict]) -> list[dict]:
+    formatted_route = []
+
+    for idx, item in enumerate(route, start=1):
+        formatted_route.append({
+            "order": idx,
+            "placeName": item.get("PlaceName"),
+            "category": item.get("category"),
+            "subCategory": item.get("subCategory"),
+            "address": item.get("Address"),
+            "region": item.get("Region"),
+            "rating": item.get("Rating"),
+            "kakaoId": item.get("KakaoId"),
+            "imageUrl": item.get("ImageURL"),
+            "x": item.get("X"),
+            "y": item.get("Y"),
+            "naegiftId": item.get("naegiftId"),
+            "distanceFromPrev": item.get("distance_from_prev", 0.0),
+        })
+
+    return formatted_route

@@ -55,6 +55,7 @@ def build_search_pipeline(search_config: dict, region: str | None = None) -> lis
                 "isSole": 1,
                 "isCouple": 1,
                 "isFriend": 1,
+                "KakaoId" : 1,
                 "score": {"$meta": "vectorSearchScore"},
             }
         },

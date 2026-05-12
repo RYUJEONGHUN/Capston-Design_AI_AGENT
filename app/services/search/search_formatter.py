@@ -37,11 +37,26 @@ def format_search_results(results: list[dict]) -> str:
 
 
 
+def build_places_metadata(results: list[dict]) -> list[dict]:
+    places = []
 
+    for idx, item in enumerate(results, start=1):
+        places.append({
+            "rank": idx,
+            "placeName": item.get("PlaceName"),
+            "category": item.get("category"),
+            "subCategory": item.get("subCategory"),
+            "address": item.get("Address"),
+            "region": item.get("Region"),
+            "rating": item.get("Rating"),
+            "kakaoId": item.get("KakaoId"),
+            "imageUrl": item.get("ImageURL"),
+            "x": item.get("X"),
+            "y": item.get("Y"),
+            "naegiftId": item.get("naegiftId"),
+        })
 
-
-
-
+    return places
 
 
 
@@ -51,6 +66,7 @@ def _safe_join_tags(value, limit: int = 4) -> str:
     if value is None:
         return ""
     return str(value)
+
 
 def format_search_results_for_agent(results: list[dict]) -> str:
     formatted = []
