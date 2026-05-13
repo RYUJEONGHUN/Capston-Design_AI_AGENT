@@ -59,7 +59,12 @@ async def chat_qwen(
                 "provider": "qwen",
             }
 
-        search_result = await search_my_incheon_data(user_input, is_course=False)
+        search_result = await search_my_incheon_data(
+            user_input,
+            is_course=False,
+            mbti_type=mbti_type or "알수없음",
+            sasang_type=sasang_type or "알수없음",
+        )
         search_result = truncate_context(search_result, max_chars=2200)
 
         prompt = build_qwen_search_prompt(

@@ -6,6 +6,26 @@ from app.services.search.search_formatter import (
 from app.services.search.vector_search_service import run_vector_search
 from app.services.search.region_service import detect_region
 from app.services.search.query_analyzer import detect_naegift_need
+from app.services.course.candidates import (
+    score_candidate_by_64_profile,
+    score_candidate_by_mbti,
+    score_candidate_by_sasang,
+)
+
+
+def personalize_search_results(
+    results: list[dict],
+    mbti_type: str = "알수없음",
+    sasang_type: str = "알수없음",
+) -> list[dict]:
+    def personalized_score(item: dict) -> float:
+        base_score = float(item.get("score", 0.0) or 0.0) * 100
+        mbti_bonus = score_candidate_by_mbti(item, mbti_type)
+        sasang_bonus = score_candidate_by_sasang(item, sasang_type)
+        profile_64_bonus = score_candidate_by_64_profile(item, mbti_type, sasang_type)
+        return -(base_score + mbti_bonus + sasang_bonus + profile_64_bonus)
+
+    return sorted(results, key=personalized_score)
 
 
 async def search_my_incheon_data(
@@ -13,6 +33,8 @@ async def search_my_incheon_data(
     is_course: bool = False,
     for_agent: bool = False,
     return_raw: bool = False,
+    mbti_type: str = "알수없음",
+    sasang_type: str = "알수없음",
 ):
     target_category = await detect_category(query)
     region = await detect_region(query)
@@ -37,6 +59,12 @@ async def search_my_incheon_data(
 
     if is_course:
         return filtered_results
+
+    filtered_results = personalize_search_results(
+        filtered_results,
+        mbti_type=mbti_type,
+        sasang_type=sasang_type,
+    )
 
     if for_agent:
         formatted_text = format_search_results_for_agent(filtered_results)

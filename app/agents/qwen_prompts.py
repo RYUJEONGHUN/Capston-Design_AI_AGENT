@@ -1,4 +1,5 @@
 from app.core.persona import PERSONA_CONFIG
+from app.core.sasang_profile import build_64_profile_prompt_guide
 
 
 def truncate_context(text: str, max_chars: int = 2200) -> str:
@@ -21,6 +22,7 @@ def build_qwen_search_prompt(
 
     mbti_value = mbti_type if mbti_type else "정보 없음"
     sasang_value = sasang_type if sasang_type else "정보 없음"
+    profile_64_guide = build_64_profile_prompt_guide(mbti_type, sasang_type)
 
     return f"""
 너는 인천 여행 추천 비서다.
@@ -31,6 +33,7 @@ def build_qwen_search_prompt(
 [사용자 정보]
 - MBTI: {mbti_value}
 - 사상의학 체질: {sasang_value}
+- MBTI+사상체질 64유형 가이드: {profile_64_guide}
 
 [질문]
 {user_input}
@@ -43,6 +46,7 @@ def build_qwen_search_prompt(
 - 장소 이름은 검색 결과에 나온 이름 그대로 써라.
 - 없는 장소는 절대 지어내지 마라.
 - 한국어로만 답해라.
+- MBTI와 사상체질은 의학적 판단이 아니라 관광 취향 참고값으로만 자연스럽게 반영해라.
 - 최대 3곳까지만 추천해라.
 - 각 장소 설명은 2문장 이내로 써라.
 - 마지막 답변은 너무 길지 않게 마무리해라.
@@ -61,6 +65,7 @@ def build_qwen_course_prompt(
 
     mbti_value = mbti_type if mbti_type else "정보 없음"
     sasang_value = sasang_type if sasang_type else "정보 없음"
+    profile_64_guide = build_64_profile_prompt_guide(mbti_type, sasang_type)
 
     return f"""
 너는 인천 여행 코스 추천 비서다.
@@ -71,6 +76,7 @@ def build_qwen_course_prompt(
 [사용자 정보]
 - MBTI: {mbti_value}
 - 사상의학 체질: {sasang_value}
+- MBTI+사상체질 64유형 가이드: {profile_64_guide}
 
 [질문]
 {user_input}
@@ -82,6 +88,7 @@ def build_qwen_course_prompt(
 - 반드시 제공된 코스 데이터만 사용해라.
 - 없는 장소를 지어내지 마라.
 - 한국어로만 답해라.
+- MBTI와 사상체질은 의학적 판단이 아니라 관광 취향 참고값으로만 자연스럽게 반영해라.
 - 코스 순서를 유지해서 설명해라.
 - 각 장소 설명은 2문장 이내로 써라.
 - 마지막 답변은 너무 길지 않게 마무리해라.

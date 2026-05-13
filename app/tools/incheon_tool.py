@@ -11,12 +11,21 @@ class IncheonSearchInput(BaseModel):
 
 
 
-def build_incheon_tool(session_id: str):
+def build_incheon_tool(
+    session_id: str,
+    mbti_type: str | None = None,
+    sasang_type: str | None = None,
+):
+    default_mbti_type = mbti_type
+    default_sasang_type = sasang_type
+
     async def run_incheon_search(query: str) -> str:
         result = await search_my_incheon_data(
             query=query,
             is_course=False,
             return_raw=True,
+            mbti_type=default_mbti_type or "알수없음",
+            sasang_type=default_sasang_type or "알수없음",
         )
 
         raw_places = result.get("raw_places", [])

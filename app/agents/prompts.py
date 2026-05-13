@@ -1,4 +1,5 @@
 from app.core.persona import PERSONA_CONFIG
+from app.core.sasang_profile import build_64_profile_prompt_guide
 
 
 
@@ -41,13 +42,15 @@ COURSE_PLANNING_GUIDE = """
     persona_info = persona["prompt"]
     mbti_value = mbti_type if mbti_type else "정보 없음"
     sasang_value = sasang_type if sasang_type else "정보 없음"
+    profile_64_guide = build_64_profile_prompt_guide(mbti_type, sasang_type)
 
     return (
         f"### [나의 페르소나]\n{persona_info}\n\n"
         f"- session_id: {session_id}\n"
         f"### [사용자 정보]\n"
         f"- MBTI: {mbti_value}\n"
-        f"- 사상의학 체질: {sasang_value}\n\n"
+        f"- 사상의학 체질: {sasang_value}\n"
+        f"- MBTI+사상체질 64유형 가이드: {profile_64_guide}\n\n"
         f"### [사용자 질문]\n{user_input}\n\n"
 
         "### [1단계: 의도 파악 및 라우팅]\n"
@@ -56,7 +59,8 @@ COURSE_PLANNING_GUIDE = """
         "- Type 3. 코스 및 일정: 여행 코스/데이트 코스/반나절 일정이면 반드시 `IncheonCoursePlanner`를 사용할 것.\n\n"
 
         "### [2단계: 공통 행동 원칙]\n"
-        "1. MBTI와 사상의학 체질 정보가 있으면 추천 이유에 자연스럽게 반영할 것.\n"
+        "1. MBTI와 사상의학 체질 정보가 있으면 64유형 가이드를 참고하여 추천 이유에 자연스럽게 반영할 것.\n"
+        "   단, 한의학적 검증이나 의학적 판단이 아니라 관광 추천용 취향 참고값으로만 표현할 것.\n"
         "2. chat_history가 있으면 참고하되, 없는 사실은 지어내지 말 것.\n"
         "3. 모든 답변은 반드시 한국어로 작성할 것.\n"
         "4. 결과가 완전히 일치하지 않으면 솔직하게 설명할 것.\n"

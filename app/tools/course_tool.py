@@ -13,18 +13,22 @@ class IncheonCourseInput(BaseModel):
     sasang_type: str | None = Field(default=None)
 
 
-def build_incheon_course_tool(session_id: str):
-    async def run_incheon_course(
-        query: str,
-        persona_type: str = "BEAR",
-        mbti_type: str | None = None,
-        sasang_type: str | None = None,
-    ) -> str:
+def build_incheon_course_tool(
+    session_id: str,
+    persona_type: str = "BEAR",
+    mbti_type: str | None = None,
+    sasang_type: str | None = None,
+):
+    default_persona_type = persona_type
+    default_mbti_type = mbti_type
+    default_sasang_type = sasang_type
+
+    async def run_incheon_course(query: str) -> str:
         result = await plan_incheon_full_course(
             query=query,
-            persona_type=persona_type,
-            mbti_type=mbti_type or "알수없음",
-            sasang_type=sasang_type or "알수없음",
+            persona_type=default_persona_type,
+            mbti_type=default_mbti_type or "알수없음",
+            sasang_type=default_sasang_type or "알수없음",
             return_raw=True,
         )
 

@@ -3,6 +3,15 @@ from app.services.course.query_analyzer import (
     extract_mood_keywords,
     extract_region_keywords,
 )
+from app.core.sasang_profile import (
+    get_64_profile_keywords,
+    get_mbti_keywords,
+    get_sasang_keywords,
+    has_known_mbti_type,
+    has_known_sasang_type,
+    normalize_mbti_type,
+    normalize_sasang_type,
+)
 
 
 def _normalize_text(value) -> str:
@@ -124,25 +133,61 @@ def score_candidate_by_mood(item: dict, mood_keywords: list[str]) -> int:
 
 
 def score_candidate_by_mbti(item: dict, mbti_type: str) -> int:
-    if not mbti_type or mbti_type == "알수없음":
+    if not has_known_mbti_type(mbti_type):
         return 0
 
+    normalized_mbti = normalize_mbti_type(mbti_type)
     mbti_tags = _normalize_text(item.get("mbtiTags"))
-    if not mbti_tags:
-        return 0
+    text = build_item_text(item)
 
-    return 10 if mbti_type in mbti_tags else 0
+    score = 0
+    if mbti_tags and normalized_mbti in mbti_tags.upper():
+        score += 10
+
+    for keyword in get_mbti_keywords(normalized_mbti):
+        if keyword in text:
+            score += 2
+
+    return min(score, 20)
 
 
 def score_candidate_by_sasang(item: dict, sasang_type: str) -> int:
-    if not sasang_type or sasang_type == "알수없음":
+    if not has_known_sasang_type(sasang_type):
         return 0
 
+    normalized_sasang = normalize_sasang_type(sasang_type)
     sasang_tags = _normalize_text(item.get("sasangTags"))
-    if not sasang_tags:
+    text = build_item_text(item)
+
+    score = 0
+    if sasang_tags and normalized_sasang in sasang_tags:
+        score += 10
+
+    for keyword in get_sasang_keywords(normalized_sasang):
+        if keyword in text:
+            score += 3
+
+    return min(score, 22)
+
+
+def score_candidate_by_64_profile(item: dict, mbti_type: str, sasang_type: str) -> int:
+    if not has_known_mbti_type(mbti_type) or not has_known_sasang_type(sasang_type):
         return 0
 
-    return 10 if sasang_type in sasang_tags else 0
+    text = build_item_text(item)
+    keywords = get_64_profile_keywords(mbti_type, sasang_type)
+    keyword_hits = sum(1 for keyword in keywords if keyword in text)
+
+    mbti_tags = _normalize_text(item.get("mbtiTags")).upper()
+    sasang_tags = _normalize_text(item.get("sasangTags"))
+    normalized_mbti = normalize_mbti_type(mbti_type)
+    normalized_sasang = normalize_sasang_type(sasang_type)
+
+    score = min(keyword_hits * 2, 12)
+    if normalized_mbti in mbti_tags and normalized_sasang in sasang_tags:
+        score += 12
+
+    return min(score, 24)
 
 
 def sort_place_candidates(
@@ -160,6 +205,7 @@ def sort_place_candidates(
         mood_bonus = score_candidate_by_mood(item, mood_keywords)
         mbti_bonus = score_candidate_by_mbti(item, mbti_type)
         sasang_bonus = score_candidate_by_sasang(item, sasang_type)
+        profile_64_bonus = score_candidate_by_64_profile(item, mbti_type, sasang_type)
 
         text = build_item_text(item)
         penalty = 0
@@ -167,7 +213,15 @@ def sort_place_candidates(
             if any(bad in text for bad in ["아이와함께", "체험학습", "토끼", "나비", "실내테마파크"]):
                 penalty += 10
 
-        return -(base_score * 100 + region_bonus + mood_bonus + mbti_bonus + sasang_bonus - penalty)
+        return -(
+            base_score * 100
+            + region_bonus
+            + mood_bonus
+            + mbti_bonus
+            + sasang_bonus
+            + profile_64_bonus
+            - penalty
+        )
 
     return sorted(items, key=candidate_score)
 
@@ -197,6 +251,7 @@ def sort_restaurant_candidates(
         mood_bonus = score_candidate_by_mood(item, mood_keywords)
         mbti_bonus = score_candidate_by_mbti(item, mbti_type)
         sasang_bonus = score_candidate_by_sasang(item, sasang_type)
+        profile_64_bonus = score_candidate_by_64_profile(item, mbti_type, sasang_type)
         sub_category_bonus = 5 if item.get("subCategory") else 0
         rating_bonus = float(item.get("Rating", 0.0) or 0.0) * 2
 
@@ -207,6 +262,7 @@ def sort_restaurant_candidates(
             + mood_bonus
             + mbti_bonus
             + sasang_bonus
+            + profile_64_bonus
             + sub_category_bonus
             + rating_bonus
         )

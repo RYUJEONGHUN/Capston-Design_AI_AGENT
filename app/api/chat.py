@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body
 
 from app.agents.executor import get_agent_executor
+from app.agents.memory import clear_memory, get_clean_chat_history_text, save_clean_chat_turn
 from app.agents.request_store import (
     clear_search_places,
     get_search_places,
@@ -11,6 +12,19 @@ from app.services.search.search_formatter import build_places_metadata
 from app.services.course.route_formatter import build_route_metadata
 
 router = APIRouter()
+
+
+@router.post("/chat/reset")
+async def reset_chat_memory(
+    session_id: str = Body("guest_user", embed=True),
+):
+    clear_memory(session_id)
+    clear_search_places(session_id)
+    clear_course_route(session_id)
+    return {
+        "ok": True,
+        "session_id": session_id,
+    }
 
 
 def parse_response_type(intermediate_steps: list) -> str:
@@ -50,7 +64,12 @@ async def chat(
             sasang_type=sasang_type,
         )
 
-        agent_result = await agent_executor.ainvoke({"input": user_input})
+        agent_result = await agent_executor.ainvoke(
+            {
+                "input": user_input,
+                "chat_history": get_clean_chat_history_text(session_id),
+            }
+        )
 
         answer = agent_result.get("output", "")
         intermediate_steps = agent_result.get("intermediate_steps", [])
@@ -63,6 +82,8 @@ async def chat(
 
         raw_route = get_course_route(session_id)
         route = build_route_metadata(raw_route) if response_type == "course" else []
+
+        save_clean_chat_turn(session_id, user_input, answer)
 
         clear_search_places(session_id)
         clear_course_route(session_id)
