@@ -25,7 +25,7 @@ jobs:
           script: |
             set -e
 
-            cd ***
+            cd /home/ubuntu/ai-server
 
             echo "=== Reset to remote main ==="
             git fetch origin
