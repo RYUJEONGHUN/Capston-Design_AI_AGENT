@@ -19,6 +19,7 @@ def get_memory(session_id: str) -> ConversationBufferWindowMemory:
         output_key="output",
         k=10,
     )
+    
 
     print("[DEBUG] memory session_id =", session_id)
 
