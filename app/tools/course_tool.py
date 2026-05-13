@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel, Field
-from langchain_core.tools import StructuredTool
+from langchain_core.tools import Tool
 
 from app.agents.request_store import set_course_route
 from app.services.course_service import plan_incheon_full_course
@@ -39,13 +39,13 @@ def build_incheon_course_tool(session_id: str):
 
         return route_text
 
-    return StructuredTool.from_function(
+    return Tool(
         name="IncheonCoursePlanner",
+        func=None,
         coroutine=run_incheon_course,
-        args_schema=IncheonCourseInput,
         description=(
-        "인천 여행 코스, 데이트 코스, 반나절 일정, 하루 일정 추천이 필요할 때 사용하는 도구다. "
-        "사용자 요청(query)과 persona_type, mbti_type, sasang_type을 입력받아 "
-        "관광지와 맛집을 조합한 코스용 데이터를 생성한다"
+            "인천 여행 코스, 데이트 코스, 반나절 일정, 하루 일정 추천이 필요할 때 사용하는 도구다. "
+            "입력은 반드시 문자열 query 하나여야 한다. "
+            "예: 송도 반나절 데이트 코스 추천"
         ),
     )

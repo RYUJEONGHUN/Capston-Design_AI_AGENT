@@ -21,6 +21,5 @@ def get_memory(session_id: str) -> ConversationBufferWindowMemory:
     )
 
     print("[DEBUG] memory session_id =", session_id)
-    print("[DEBUG] loaded memory vars =", memory.load_memory_variables({}))
 
     return memory

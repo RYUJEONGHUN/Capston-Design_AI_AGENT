@@ -14,7 +14,7 @@ def get_agent_executor(
     sasang_type: str | None = None,
 ):
     tools = build_session_tools(session_id)
-
+    print("[DEBUG][executor] tool classes =", [type(t).__name__ for t in tools])
     persona = PERSONA_CONFIG.get(persona_type, PERSONA_CONFIG["BEAR"])
     persona_info = persona["prompt"]
 

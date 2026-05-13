@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from langchain_core.tools import StructuredTool
+from langchain_core.tools import Tool
 
 from app.agents.request_store import set_search_places
 from app.services.search_service import search_my_incheon_data
@@ -28,15 +28,15 @@ def build_incheon_tool(session_id: str):
         set_search_places(session_id, raw_places)
         return formatted_text
 
-    return StructuredTool.from_function(
+    
+    return Tool(
         name="IncheonExpertSearch",
+        func=None,
         coroutine=run_incheon_search,
-        args_schema=IncheonSearchInput,
         description=(
             "인천의 관광지, 맛집, 카페 등 장소 정보를 검색할 때 사용한다. "
             "일상적인 잡담이나 단순 인사에는 사용하지 않는다. "
             "사용자는 query만 전달하면 된다."
-            "사용자 요청 query를 입력받아 관련 장소 검색 결과를 반환한다."
-
+            "예: 송도 맛집 추천, 인천 데이트 카페 추천"
         ),
     )
