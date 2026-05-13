@@ -25,12 +25,11 @@ jobs:
           script: |
             set -e
 
-            cd ${{ secrets.AI_SERVER_PATH }}
+            cd ***
 
-            echo "=== Git pull ==="
+            echo "=== Reset to remote main ==="
             git fetch origin
-            git checkout main
-            git pull origin main
+            git reset --hard origin/main
 
             echo "=== Docker compose deploy ==="
             docker compose -f docker-compose-prod.yml down
