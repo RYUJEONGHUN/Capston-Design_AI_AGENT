@@ -123,4 +123,7 @@ def build_system_prompt(
         "- 사용할 수 있는 도구 이름은 정확히 아래 두 개뿐이다.\n"
         "  1. IncheonExpertSearch\n"
         "  2. IncheonCoursePlanner\n"
+        "- 도구를 호출할 때 JSON 키는 반드시 `action`과 `action_input`만 사용할 것.\n"
+        "- `tool_input`, `input`, `query` 같은 다른 JSON 키 이름은 절대 사용하지 말 것.\n"
+        "- 예시: {{\"action\": \"IncheonExpertSearch\", \"action_input\": \"연수구 맛집 추천\"}}\n"
     )

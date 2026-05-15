@@ -34,7 +34,11 @@ def get_agent_executor(
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
         return_intermediate_steps=True,
         verbose=True,
-        handle_parsing_errors=True,
+        handle_parsing_errors=(
+            "도구 호출 형식 오류입니다. JSON은 반드시 "
+            "{\"action\": \"도구이름\", \"action_input\": \"사용자 질의\"} "
+            "형식으로 다시 작성하세요. tool_input 키는 사용하지 마세요."
+        ),
         agent_kwargs={
             "prefix": system_prompt,
             "suffix": (
